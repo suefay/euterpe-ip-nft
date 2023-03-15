@@ -1,0 +1,9 @@
+[package]
+name = "EuterpeIPNFT"
+version = "0.1.0"
+
+[dependencies]
+Sui = { local = "/Users/haiweisu/Research/sui/crates/sui-framework" }
+
+[addresses]
+euterpe_ip_nft = "0x0"
