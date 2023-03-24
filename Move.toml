@@ -3,7 +3,8 @@ name = "EuterpeIPNFT"
 version = "0.1.0"
 
 [dependencies]
-Sui = { local = "/Users/haiweisu/Research/sui/crates/sui-framework" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "devnet" }
 
 [addresses]
 euterpe_ip_nft = "0x0"
+sui =  "0000000000000000000000000000000000000002"

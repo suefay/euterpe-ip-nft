@@ -56,7 +56,7 @@ module euterpe_ip_nft::movie_ip_nft {
             url: url::new_unsafe_from_bytes(url)
         };
 
-        event::emit(MintEvent{object_id: object::uid_to_inner(&token.id), account: recipient});
+        event::emit(MintEvent { object_id: object::uid_to_inner(&token.id), account: recipient });
 
         transfer::transfer(token, recipient)
     }
@@ -68,7 +68,7 @@ module euterpe_ip_nft::movie_ip_nft {
     ) {
         let EuterpeMovieIPNFT { id, url: _ } = token;
 
-        event::emit(BurnEvent{object_id: object::uid_to_inner(&id), account: tx_context::sender(ctx)});
+        event::emit(BurnEvent { object_id: object::uid_to_inner(&id), account: tx_context::sender(ctx) });
 
         object::delete(id)
     }

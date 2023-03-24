@@ -11,13 +11,12 @@ module euterpe_ip_nft::composable_ip_nft {
     use euterpe_ip_nft::music_ip_nft::EuterpeMusicIPNFT;
     use euterpe_ip_nft::movie_ip_nft::EuterpeMovieIPNFT;
 
+    /// Error for non existing field.
+    const EFieldDoesNotExist: u64 = 0;
+
     /// EuterpeComposableIPNFT defines the composable IP NFT which comprises the music IP NFT and movie IP NFT.
     struct EuterpeComposableIPNFT has key, store {
-        id: UID,
-        /// The object ID of the music IP NFT which is a component of the composed token
-        music_object_id: ID,
-        /// The object ID of the movie IP NFT which is a component of the composed token
-        movie_object_id: ID
+        id: UID
     }
 
     /// Emitted when a token is composed.
@@ -50,9 +49,7 @@ module euterpe_ip_nft::composable_ip_nft {
         let movie_object_id = object::id(&movie_ip_nft);
 
         let new_token = EuterpeComposableIPNFT {
-            id: object::new(ctx),
-            music_object_id: music_object_id,
-            movie_object_id: movie_object_id
+            id: object::new(ctx)
         };
 
         field::add(&mut new_token.id, music_object_id, music_ip_nft);
@@ -71,9 +68,14 @@ module euterpe_ip_nft::composable_ip_nft {
     /// Decompose the token to the original music IP NFT and movie IP NFT.
     public entry fun decompose(
         composable_ip_nft: EuterpeComposableIPNFT,
+        music_object_id: ID,
+        movie_object_id: ID,
         ctx: &mut TxContext
     ) {
-        let EuterpeComposableIPNFT {id, music_object_id, movie_object_id} = composable_ip_nft;
+        let EuterpeComposableIPNFT { id } = composable_ip_nft;
+
+        assert!(field::exists_(&id, music_object_id), EFieldDoesNotExist);
+        assert!(field::exists_(&id, movie_object_id), EFieldDoesNotExist);
 
         let music_ip_nft = field::remove<ID, EuterpeMusicIPNFT>(&mut id, music_object_id);
         let movie_ip_nft = field::remove<ID, EuterpeMovieIPNFT>(&mut id, movie_object_id);
