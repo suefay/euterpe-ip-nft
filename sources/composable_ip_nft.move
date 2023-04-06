@@ -5,14 +5,14 @@ module euterpe_ip_nft::composable_ip_nft {
     use sui::transfer;
     use sui::event;
     use sui::object::{Self, ID, UID};
-    use sui::dynamic_field as field;
+    use sui::dynamic_object_field as ofield;
     use sui::tx_context::{Self, TxContext};
     
     use euterpe_ip_nft::music_ip_nft::EuterpeMusicIPNFT;
     use euterpe_ip_nft::movie_ip_nft::EuterpeMovieIPNFT;
 
-    /// Error for non existing field.
-    const EFieldDoesNotExist: u64 = 0;
+    /// Error for non existing wrapped object.
+    const EWrappedObjectDoesNotExist: u64 = 0;
 
     /// EuterpeComposableIPNFT defines the composable IP NFT which comprises the music IP NFT and movie IP NFT.
     struct EuterpeComposableIPNFT has key, store {
@@ -52,8 +52,8 @@ module euterpe_ip_nft::composable_ip_nft {
             id: object::new(ctx)
         };
 
-        field::add(&mut new_token.id, music_object_id, music_ip_nft);
-        field::add(&mut new_token.id, movie_object_id, movie_ip_nft);
+        ofield::add(&mut new_token.id, music_object_id, music_ip_nft);
+        ofield::add(&mut new_token.id, movie_object_id, movie_ip_nft);
 
         event::emit(ComposeEvent {
             object_id: object::uid_to_inner(&new_token.id), 
@@ -74,11 +74,11 @@ module euterpe_ip_nft::composable_ip_nft {
     ) {
         let EuterpeComposableIPNFT { id } = composable_ip_nft;
 
-        assert!(field::exists_(&id, music_object_id), EFieldDoesNotExist);
-        assert!(field::exists_(&id, movie_object_id), EFieldDoesNotExist);
+        assert!(ofield::exists_(&id, music_object_id), EWrappedObjectDoesNotExist);
+        assert!(ofield::exists_(&id, movie_object_id), EWrappedObjectDoesNotExist);
 
-        let music_ip_nft = field::remove<ID, EuterpeMusicIPNFT>(&mut id, music_object_id);
-        let movie_ip_nft = field::remove<ID, EuterpeMovieIPNFT>(&mut id, movie_object_id);
+        let music_ip_nft = ofield::remove<ID, EuterpeMusicIPNFT>(&mut id, music_object_id);
+        let movie_ip_nft = ofield::remove<ID, EuterpeMovieIPNFT>(&mut id, movie_object_id);
 
         event::emit(DecomposeEvent {
             object_id: object::uid_to_inner(&id),
@@ -87,7 +87,7 @@ module euterpe_ip_nft::composable_ip_nft {
 
         object::delete(id);
 
-        transfer::transfer(music_ip_nft, tx_context::sender(ctx));
-        transfer::transfer(movie_ip_nft, tx_context::sender(ctx))
+        transfer::public_transfer(music_ip_nft, tx_context::sender(ctx));
+        transfer::public_transfer(movie_ip_nft, tx_context::sender(ctx))
     }
 }
