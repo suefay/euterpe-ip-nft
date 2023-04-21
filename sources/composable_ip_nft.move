@@ -11,8 +11,9 @@ module euterpe_ip_nft::composable_ip_nft {
     use euterpe_ip_nft::music_ip_nft::EuterpeMusicIPNFT;
     use euterpe_ip_nft::movie_ip_nft::EuterpeMovieIPNFT;
 
-    /// Error for non existing wrapped object.
-    const EWrappedObjectDoesNotExist: u64 = 0;
+    /// Keys for dynamic fields.
+    const MUSIC_IP_NFT_FIELD_KEY: u8 = 0;
+    const MOVIE_IP_NFT_FIELD_KEY: u8 = 1;
 
     /// EuterpeComposableIPNFT defines the composable IP NFT which comprises the music IP NFT and movie IP NFT.
     struct EuterpeComposableIPNFT has key, store {
@@ -52,8 +53,8 @@ module euterpe_ip_nft::composable_ip_nft {
             id: object::new(ctx)
         };
 
-        ofield::add(&mut new_token.id, music_object_id, music_ip_nft);
-        ofield::add(&mut new_token.id, movie_object_id, movie_ip_nft);
+        ofield::add(&mut new_token.id, MUSIC_IP_NFT_FIELD_KEY, music_ip_nft);
+        ofield::add(&mut new_token.id, MOVIE_IP_NFT_FIELD_KEY, movie_ip_nft);
 
         event::emit(ComposeEvent {
             object_id: object::uid_to_inner(&new_token.id), 
@@ -68,17 +69,12 @@ module euterpe_ip_nft::composable_ip_nft {
     /// Decompose the token to the original music IP NFT and movie IP NFT.
     public entry fun decompose(
         composable_ip_nft: EuterpeComposableIPNFT,
-        music_object_id: ID,
-        movie_object_id: ID,
         ctx: &mut TxContext
     ) {
         let EuterpeComposableIPNFT { id } = composable_ip_nft;
 
-        assert!(ofield::exists_(&id, music_object_id), EWrappedObjectDoesNotExist);
-        assert!(ofield::exists_(&id, movie_object_id), EWrappedObjectDoesNotExist);
-
-        let music_ip_nft = ofield::remove<ID, EuterpeMusicIPNFT>(&mut id, music_object_id);
-        let movie_ip_nft = ofield::remove<ID, EuterpeMovieIPNFT>(&mut id, movie_object_id);
+        let music_ip_nft: EuterpeMusicIPNFT = ofield::remove(&mut id, MUSIC_IP_NFT_FIELD_KEY);
+        let movie_ip_nft: EuterpeMovieIPNFT = ofield::remove(&mut id, MOVIE_IP_NFT_FIELD_KEY);
 
         event::emit(DecomposeEvent {
             object_id: object::uid_to_inner(&id),
